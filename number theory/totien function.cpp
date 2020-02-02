@@ -3,25 +3,23 @@
 
 using namespace std;
 
-int totient(int n)
+ll totient(ll n)
 {
-    int t=n;
-    int ret=n;
-
-    for(int i=2;i<=n;i++)
+    ll result = n;
+    for (ll i = 2; i * i <= n; i++)
     {
-        if(n%i==0)
+        if(n % i == 0)
         {
-             ret=ret-ret/i;
-            while(n%i==0)
-            {
-
-                n/=i;
-            }
+            while(n % i == 0)
+                n /= i;
+            result -= result / i;
         }
     }
-    return ret;
+    if(n > 1)
+        result -= result / n;
+    return result;
 }
+
 
 int main()
 {
