@@ -1,7 +1,8 @@
 /**
 
 Let us take below example to understand the solution
-   num[]=number[] = {3, 4, 5}, rem[]=remainder[] = {2, 3, 1}
+   num[]=number[] = {3, 4, 5}, num[] should be pairwise co-prime
+   rem[]=remainder[] = {2, 3, 1}
    prod=productOfAllNumber  = 60
    pp[]  = {20, 15, 12}  { productOfAllNumber/number[i] };
    inv[]=modularMultiplicativeInverse[] = {2,  3,  3}  // (20*2)%3 = 1, (15*3)%4 = 1
@@ -60,7 +61,7 @@ int modularMultiplicativeInverse(int a, int m)
 
 }
 
-chineseRemainderTheorem(int number[], int remainder[],int n)
+int chineseRemainderTheorem(int number[], int remainder[],int n)
 {
     int product=1;
 
@@ -81,6 +82,70 @@ chineseRemainderTheorem(int number[], int remainder[],int n)
     }
 
     return x%product;
+}
+
+
+int ext_gcd ( int A, int B, int *X, int *Y ){
+    int x2, y2, x1, y1, x, y, r2, r1, q, r;
+    x2 = 1; y2 = 0;
+    x1 = 0; y1 = 1;
+    for (r2 = A, r1 = B; r1 != 0; r2 = r1, r1 = r, x2 = x1, y2 = y1, x1 = x, y1 = y ) {
+        q = r2 / r1;
+        r = r2 % r1;
+        x = x2 - (q * x1);
+        y = y2 - (q * y1);
+    }
+    *X = x2; *Y = y2;
+    return r2;
+}
+
+/** Works for non-coprime moduli.
+ Returns {-1,-1} if solution does not exist or input is invalid.
+ Otherwise, returns {x,L}, where x is the solution unique to mod L
+*/
+
+/**
+theory
+https://forthright48.com/chinese-remainder-theorem-part-2-non-coprime-moduli/
+
+
+
+*/
+
+
+
+pair<int, int> chinese_remainder_theorem( vector<int> A, vector<int> M ) {
+    if(A.size() != M.size()) return {-1,-1}; /** Invalid input*/
+
+    int n = A.size();
+
+    int a1 = A[0];
+    int m1 = M[0];
+    /** Initially x = a_0 (mod m_0)*/
+
+    /** Merge the solution with remaining equations */
+    for ( int i = 1; i < n; i++ ) {
+        int a2 = A[i];
+        int m2 = M[i];
+
+        int g = __gcd(m1, m2);
+        if ( a1 % g != a2 % g ) return {-1,-1}; /** No solution exists*/
+
+        /** Merge the two equations*/
+        int p, q;
+        ext_gcd(m1/g, m2/g, &p, &q);
+
+        int mod = m1 / g * m2; /** LCM of m1 and m2*/
+
+        /** We need to be careful about overflow, but I did not bother about overflow here to keep the code simple.*/
+        int x = (a1*(m2/g)*q + a2*(m1/g)*p) % mod;
+
+        /** Merged equation*/
+        a1 = x;
+        if (a1 < 0) a1 += mod; /** Result is not suppose to be negative*/
+        m1 = mod;
+    }
+    return {a1, m1};
 }
 
 int main()

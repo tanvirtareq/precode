@@ -1,4 +1,10 @@
 /// from 1 to n ,the number of integer that's gcd(n,x)=1 is the totien of n
+/**
+n=p1^(a1)*p2^(a2)*...pk^(ak)
+then phi(n)=n*(p1-1)/p1*(p2-1)/p2*...(pk-1)/pk
+
+*/
+
 #include<bits/stdc++.h>
 
 using namespace std;
