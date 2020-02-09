@@ -21,6 +21,76 @@ ll totient(ll n)
 }
 
 
+
+/// this function will pre calculate phi of 1 to n in O(n) complexity
+int lp[MX + 10];
+int phi[MX + 10];
+vector<int> pr;
+
+void calc_sieve()
+{
+    phi[1] = 1;
+    for (int i = 2; i <= MX; ++i)
+    {
+        if (lp[i] == 0)
+        {
+            lp[i] = i;
+            phi[i] = i - 1;
+            pr.push_back(i);
+        }
+        else
+        {
+            //Calculating phi
+            if (lp[i] == lp[i / lp[i]])
+                phi[i] = phi[i / lp[i]] * lp[i];
+            else
+                phi[i] = phi[i / lp[i]] * (lp[i] - 1);
+        }
+        for (int j = 0; j < (int)pr.size() && pr[j] <= lp[i] && i * pr[j] <= MX; ++j)
+            lp[i * pr[j]] = pr[j];
+    }
+}
+
+
+
+/// rhis will pre calculate phi of 1 to n in O(nlogn) complexity
+ll p[MX+10], g[MX+10];
+
+void precalphi()
+{
+    for(int i=1;i<=MX;i++) p[i]=i;
+
+    for(ll i=2;i<=MX;i++)
+    {
+        if(p[i]==i)
+        {
+            for(ll j=i;j<=MX;j+=i)
+            {
+                p[j]=p[j]/i*(i-1);
+            }
+        }
+    }
+}
+
+
+/// this will precalculate all pair gcdsum for 1 to n in O(nlogn) complexity
+void gcdx()
+{
+    for(ll i=2;i<=MX;i++) g[i]=phi[i];
+
+    for(ll i=2;i<=MX;i++)
+    {
+
+            for(ll j=i+i;j<=MX;j+=i)
+            {
+                g[j]+=j*phi[i]/i;
+            }
+    }
+
+    for(ll i=2;i<=MX;i++) g[i]+=g[i-1];
+}
+
+
 int main()
 {
     int x=totient(120);
