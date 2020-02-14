@@ -1,6 +1,292 @@
 #include<bits/stdc++.h>
+using namespace std;
+/// Geometry
+/// Convex hull:
+struct pt {
+    double x, y;
+};
+
+bool cmp(pt a, pt b) {
+    return a.x < b.x || (a.x == b.x && a.y < b.y);
+}
+
+bool cw(pt a, pt b, pt c) {
+    return a.x*(b.y-c.y)+b.x*(c.y-a.y)+c.x*(a.y-b.y) < 0;
+}
+
+bool ccw(pt a, pt b, pt c) {
+    return a.x*(b.y-c.y)+b.x*(c.y-a.y)+c.x*(a.y-b.y) > 0;
+}
+
+void convex_hull(vector<pt>& a) {
+    if (a.size() == 1)
+        return;
+
+    sort(a.begin(), a.end(), &cmp);
+    pt p1 = a[0], p2 = a.back();
+    vector<pt> up, down;
+    up.push_back(p1);
+    down.push_back(p1);
+    for (int i = 1; i < (int)a.size(); i++) {
+        if (i == a.size() - 1 || cw(p1, a[i], p2)) {
+            while (up.size() >= 2 && !cw(up[up.size()-2], up[up.size()-1], a[i]))
+                up.pop_back();
+            up.push_back(a[i]);
+        }
+        if (i == a.size() - 1 || ccw(p1, a[i], p2)) {
+            while(down.size() >= 2 && !ccw(down[down.size()-2], down[down.size()-1], a[i]))
+                down.pop_back();
+            down.push_back(a[i]);
+        }
+    }
+
+    a.clear();
+    for (int i = 0; i < (int)up.size(); i++)
+        a.push_back(up[i]);
+    for (int i = down.size() - 2; i > 0; i--)
+        a.push_back(down[i]);
+}
+Chinese remainder theorem:
+int ext_gcd ( int A, int B, int *X, int *Y ){
+    int x2, y2, x1, y1, x, y, r2, r1, q, r;
+    x2 = 1; y2 = 0;
+    x1 = 0; y1 = 1;
+    for (r2 = A, r1 = B; r1 != 0; r2 = r1, r1 = r, x2 = x1, y2 = y1, x1 = x, y1 = y ) {
+        q = r2 / r1;
+        r = r2 % r1;
+        x = x2 - (q * x1);
+        y = y2 - (q * y1);
+    }
+    *X = x2; *Y = y2;
+    return r2;
+}
+
+/** Works for non-coprime moduli.
+ Returns {-1,-1} if solution does not exist or input is invalid.
+ Otherwise, returns {x,L}, where x is the solution unique to mod L
+*/
+
+/**
+theory
+https://forthright48.com/chinese-remainder-theorem-part-2-non-coprime-moduli/
+
+
+
+*/
+
+
+
+pair<int, int> chinese_remainder_theorem( vector<int> A, vector<int> M ) {
+    if(A.size() != M.size()) return {-1,-1}; /** Invalid input*/
+
+    int n = A.size();
+
+    int a1 = A[0];
+    int m1 = M[0];
+    /** Initially x = a_0 (mod m_0)*/
+
+    /** Merge the solution with remaining equations */
+    for ( int i = 1; i < n; i++ ) {
+        int a2 = A[i];
+        int m2 = M[i];
+
+        int g = __gcd(m1, m2);
+        if ( a1 % g != a2 % g ) return {-1,-1}; /** No solution exists*/
+
+        /** Merge the two equations*/
+        int p, q;
+        ext_gcd(m1/g, m2/g, &p, &q);
+
+        int mod = m1 / g * m2; /** LCM of m1 and m2*/
+
+        /** We need to be careful about overflow, but I did not bother about overflow here to keep the code simple.*/
+        int x = (a1*(m2/g)*q + a2*(m1/g)*p) % mod;
+
+        /** Merged equation*/
+        a1 = x;
+        if (a1 < 0) a1 += mod; /** Result is not suppose to be negative*/
+        m1 = mod;
+    }
+    return {a1, m1};
+}
+Modular multiplicative inverse:
+/**
+modular multiplicative inverse from 1 to N in o(n) complexity
+*/
+void modularMultiplicativeInverse()
+{
+    int inv[SIZE];
+    inv[1] = 1;
+    for ( int i = 2; i <= n; i++ )
+    {
+        inv[i] = (-(m/i) * inv[m%i] ) % m;
+        inv[i] = inv[i] + m;
+    }
+}
+
+Phi:
+/// from 1 to n ,the number of integer that's gcd(n,x)=1 is the totien of n
+/**
+n=p1^(a1)*p2^(a2)*...pk^(ak)
+then phi(n)=n*(p1-1)/p1*(p2-1)/p2*...(pk-1)/pk
+
+*/
+
+#include<bits/stdc++.h>
 
 using namespace std;
+
+ll totient(ll n)
+{
+    ll result = n;
+    for (ll i = 2; i * i <= n; i++)
+    {
+        if(n % i == 0)
+        {
+            while(n % i == 0)
+                n /= i;
+            result -= result / i;
+        }
+    }
+    if(n > 1)
+        result -= result / n;
+    return result;
+}
+
+
+
+/// this function will pre calculate phi of 1 to n in O(n) complexity
+int lp[MX + 10];
+int phi[MX + 10];
+vector<int> pr;
+
+void calc_sieve()
+{
+    phi[1] = 1;
+    for (int i = 2; i <= MX; ++i)
+    {
+        if (lp[i] == 0)
+        {
+            lp[i] = i;
+            phi[i] = i - 1;
+            pr.push_back(i);
+        }
+        else
+        {
+            //Calculating phi
+            if (lp[i] == lp[i / lp[i]])
+                phi[i] = phi[i / lp[i]] * lp[i];
+            else
+                phi[i] = phi[i / lp[i]] * (lp[i] - 1);
+        }
+        for (int j = 0; j < (int)pr.size() && pr[j] <= lp[i] && i * pr[j] <= MX; ++j)
+            lp[i * pr[j]] = pr[j];
+    }
+}
+
+
+
+/// rhis will pre calculate phi of 1 to n in O(nlogn) complexity
+ll p[MX+10], g[MX+10];
+
+void precalphi()
+{
+    for(int i=1;i<=MX;i++) p[i]=i;
+
+    for(ll i=2;i<=MX;i++)
+    {
+        if(p[i]==i)
+        {
+            for(ll j=i;j<=MX;j+=i)
+            {
+                p[j]=p[j]/i*(i-1);
+            }
+        }
+    }
+}
+
+
+/// this will precalculate all pair gcdsum for 1 to n in O(nlogn) complexity
+void gcdx()
+{
+    for(ll i=2;i<=MX;i++) g[i]=phi[i];
+
+    for(ll i=2;i<=MX;i++)
+    {
+
+            for(ll j=i+i;j<=MX;j+=i)
+            {
+                g[j]+=j*phi[i]/i;
+            }
+    }
+
+    for(ll i=2;i<=MX;i++) g[i]+=g[i-1];
+}
+
+
+int main()
+{
+    int x=totient(120);
+    cout<<x<<endl;
+
+    return 0;
+}
+
+Heckenbush:
+vector<int> adj[1000];
+int hackenbush(int u, int parent)
+{
+    int result = 0;
+    for(int i = 0; i < adj[u].size(); i++)
+    {
+        int v = adj[u][i];
+        if (v == parent)
+            continue;
+        result ^= hackenbush (v, u) + 1;
+    };
+    return result;
+}
+int main()
+{
+    int n;
+    cin>>n;
+    for(int i=1; i<n; i++)
+    {
+        int u, v;
+        cin>>u>>v;
+        adj[u].push_back(v);
+        adj[v].push_back(u);
+    }
+    int rs=hackenbush(1, 0);
+    if(rs)
+        cout<<"Alice"<<endl;
+    else
+        cout<<"Bob"<<endl;
+
+}
+
+Linear diaphantine equation:
+pair<int, int>  find_one_solution_of_linear_diophantine_equation(int a, int b, int c)
+{
+    pair<int, int> p, q;
+
+    int g=__gcd(abs(a) , abs(b));
+
+    if(c%g!=0)
+    {
+        cout<<"no solution"<<endl;
+        return p;
+    }
+
+    q=extendedEuclideanCover(a,b);
+
+    p.first=q.first*c/g;
+    p.second=q.second*c/g;
+
+    return p;
+
+}
+Geo template:
 
 const double INF = 1e100;
 const double EPS = 1e-9;
@@ -392,8 +678,7 @@ int compareClockWise(pair<PT, int> a, pair<PT, int> b)
         (helper(a.first)&& !helper(b.first));
 }
 
-int main()
-{
 
-    return 0;
-}
+
+
+
