@@ -4,7 +4,7 @@
 
 #define v(a) vector<a>
 #define p(a, b) pair<a, b>
-#define dbg(a) cput<<#a<<" = "<<a<<endl
+#define dbg(a) cout<<#a<<" = "<<a<<endl
 
 using namespace std;
 
